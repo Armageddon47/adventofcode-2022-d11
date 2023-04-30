@@ -1,5 +1,10 @@
 import re
 import copy
+from decimal import Decimal, getcontext,ROUND_DOWN
+
+
+
+getcontext().prec = 50  # set precision to 50 decimal places
 
 files = []
 monkeys = []
@@ -56,6 +61,7 @@ for command in files:
         monkeys[monkeyCount].b = numbers
  
 monkeys_copy = copy.deepcopy(monkeys)
+monkeys_original = copy.deepcopy(monkeys)
        
 while(countRounds < 20):
     f = 0
@@ -83,14 +89,67 @@ while(countRounds < 20):
             tem.items.pop(0)
             
         f += 1
-                
-    
+
     countRounds += 1
 totalInspected = []
 for i in monkeys:
-
     totalInspected.append(i.inspected)
     
 totalInspected.sort()
 print(totalInspected)
 print("answer to part 1 is : " , (totalInspected[-1] * totalInspected[-2]))
+
+############# end fo part 1
+## IMPORTANT NOTE,##
+## Part two is gonna take a couple of minutes to calculate, 
+## give it time after you start to run the code
+monkeys_copy = copy.deepcopy(monkeys_original)
+monkeys = copy.deepcopy(monkeys_original)
+primes_sum = 1
+for mk in monkeys_original:
+    primes_sum *= int(mk.divisible[0])
+
+countRounds = 0
+while countRounds < 10000:
+    f = 0
+    while True:
+        monkeys = copy.deepcopy(monkeys_copy)
+        if f >= len(monkeys): break
+        
+        tem = monkeys[f]
+        monkeys_copy[f].inspected += len(tem.items)
+        while len(tem.items) > 0:
+            d = tem.items[0]
+            if tem.operation == '*old':
+                compare = int((d * d) )
+            elif tem.operation == '+old':
+                compare = int((d + d) )
+            else:
+                compare = int(eval(f"{d}{tem.operation}"))   
+
+            compare %= primes_sum
+                
+            if compare % int(tem.divisible[0]) == 0:
+                monkeys_copy[int(tem.a[0])].items.append(compare)
+                monkeys_copy[f].items.remove(d)
+            else:
+                monkeys_copy[int(tem.b[0])].items.append(compare)
+                monkeys_copy[f].items.remove(d)
+            tem.items.pop(0)
+            
+        f += 1
+    if countRounds % 1000 == 0:
+        pass
+    countRounds += 1
+        
+print ( countRounds)
+
+
+totalInspected = []
+for i in monkeys:
+    totalInspected.append(i.inspected)
+    
+totalInspected.sort()
+
+output = Decimal((totalInspected[-1] * totalInspected[-2]))
+print("answer to part 2 is : " , output)
